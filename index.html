@@ -1,0 +1,1397 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#1a3c34">
+<meta name="color-scheme" content="dark">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Tree ID">
+<meta name="format-detection" content="telephone=no">
+<link rel="manifest" href="manifest.webmanifest">
+<title>Tree ID — Guess the Tree!</title>
+<style>
+/* Tree ID Game - Styles */
+:root {
+    --green-dark: #1a3c34;
+    --green-mid: #2d6a4f;
+    --green-light: #40916c;
+    --green-pale: #95d5b2;
+    --brown-dark: #5c3a1e;
+    --brown-light: #d5b08f;
+    --cream: #fefae0;
+    --white: #ffffff;
+    --wrong: #d62828;
+    --correct: #2d6a4f;
+    --shadow: rgba(0, 0, 0, 0.2);
+    --radius: 12px;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+button, input, a {
+    -webkit-tap-highlight-color: transparent;
+}
+
+button {
+    touch-action: manipulation;
+    min-height: 44px;
+}
+
+html {
+    min-height: 100%;
+    background: #0d211a;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: linear-gradient(135deg, var(--green-dark), #0d211a);
+    min-height: 100vh;
+    min-height: 100dvh;
+    color: var(--cream);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    -webkit-text-size-adjust: 100%;
+    overscroll-behavior-y: none;
+}
+
+#wrapper {
+    width: 100%;
+    max-width: 700px;
+    padding-top: max(20px, env(safe-area-inset-top));
+    padding-right: max(20px, env(safe-area-inset-right));
+    padding-bottom: max(20px, env(safe-area-inset-bottom));
+    padding-left: max(20px, env(safe-area-inset-left));
+}
+
+main {
+    background: rgba(255, 255, 255, 0.08);
+    -webkit-backdrop-filter: blur(10px);
+    backdrop-filter: blur(10px);
+    border-radius: 20px;
+    padding: 30px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 20px 60px var(--shadow);
+}
+
+h1 {
+    font-size: 1.8rem;
+    font-weight: 700;
+    text-align: center;
+    margin-bottom: 6px;
+    letter-spacing: -0.5px;
+    color: var(--green-pale);
+}
+
+h1 span {
+    color: var(--cream);
+}
+
+.subtitle {
+    text-align: center;
+    color: var(--brown-light);
+    font-size: 0.9rem;
+    margin-bottom: 20px;
+    font-weight: 400;
+}
+
+/* Score bar */
+#score-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: var(--radius);
+    padding: 10px 18px;
+    margin-bottom: 20px;
+    font-size: 0.95rem;
+}
+
+#score-bar .score-label {
+    opacity: 0.7;
+}
+
+#score-bar .score-value {
+    font-weight: 600;
+    font-size: 1.1rem;
+    color: var(--green-pale);
+}
+
+/* Round progress */
+.round-progress {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+}
+
+.dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.15);
+    transition: all 0.3s ease;
+}
+
+.dot.correct {
+    background: var(--correct);
+    box-shadow: 0 0 8px rgba(45, 106, 79, 0.5);
+}
+
+.dot.wrong {
+    background: var(--wrong);
+    box-shadow: 0 0 8px rgba(214, 40, 40, 0.5);
+}
+
+.dot.partial {
+    background: #d4a017;
+    box-shadow: 0 0 8px rgba(212, 160, 23, 0.5);
+}
+
+.dot.active {
+    background: var(--green-pale);
+}
+
+/* Photo area */
+#frame {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+#img-container {
+    width: 100%;
+    aspect-ratio: 4/3;
+    border-radius: var(--radius);
+    overflow: hidden;
+    background: rgba(0, 0, 0, 0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    border: 2px solid rgba(255, 255, 255, 0.08);
+}
+
+#img-container img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    display: block;
+    transition: opacity 0.4s ease;
+}
+
+#img-container .loading-spinner {
+    width: 40px;
+    height: 40px;
+    border: 3px solid rgba(255, 255, 255, 0.1);
+    border-top-color: var(--green-pale);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    position: absolute;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+#img-container .photo-label {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 30px 16px 12px;
+    background: linear-gradient(transparent, rgba(0,0,0,0.7));
+    font-size: 0.75rem;
+    opacity: 0.6;
+}
+
+#img-container .photo-label a {
+    color: inherit;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+}
+
+#img-container .photo-label a:hover {
+    opacity: 1;
+}
+
+#img-container .photo-message {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    max-width: 420px;
+    padding: 24px;
+    color: var(--cream);
+    text-align: center;
+}
+
+#img-container .photo-message-icon {
+    font-size: 48px;
+}
+
+#img-container .photo-actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px;
+}
+
+#img-container .photo-actions button {
+    padding: 10px 18px;
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    border-radius: var(--radius);
+    background: var(--green-mid);
+    color: var(--white);
+    font: inherit;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+#img-container .photo-actions button.secondary {
+    background: rgba(255, 255, 255, 0.08);
+}
+
+/* Answer area */
+#answer-container {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+#answer-container h2 {
+    font-size: 1.0rem;
+    font-weight: 500;
+    text-align: center;
+    color: var(--cream);
+    opacity: 0.8;
+}
+
+.answer-field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.answer-field label {
+    font-size: 0.8rem;
+    font-weight: 600;
+    letter-spacing: 0.4px;
+    text-transform: uppercase;
+    color: var(--brown-light);
+    opacity: 0.8;
+}
+
+.answer-field input {
+    width: 100%;
+    padding: 13px 14px;
+    border: 2px solid rgba(255, 255, 255, 0.15);
+    border-radius: var(--radius);
+    background: rgba(255, 255, 255, 0.06);
+    color: var(--cream);
+    font-size: 16px;
+    font-weight: 500;
+    outline: none;
+    transition: all 0.2s ease;
+}
+
+.answer-field input::placeholder {
+    color: rgba(176, 137, 104, 0.55);
+    font-weight: 400;
+}
+
+.answer-field input:focus {
+    border-color: var(--green-pale);
+    background: rgba(255, 255, 255, 0.1);
+    box-shadow: 0 0 0 3px rgba(149, 213, 178, 0.15);
+}
+
+.answer-field input:disabled {
+    cursor: default;
+    opacity: 0.75;
+}
+
+.answer-field input.field-correct {
+    border-color: var(--correct);
+    background: rgba(45, 106, 79, 0.25);
+    box-shadow: 0 0 16px rgba(45, 106, 79, 0.25);
+}
+
+.answer-field input.field-wrong {
+    border-color: var(--wrong);
+    background: rgba(214, 40, 40, 0.18);
+    box-shadow: 0 0 16px rgba(214, 40, 40, 0.15);
+}
+
+.field-hint {
+    font-size: 0.85rem;
+    min-height: 1.1em;
+    padding-left: 4px;
+}
+
+.field-hint.hint-correct {
+    color: var(--green-pale);
+}
+
+.field-hint.hint-wrong {
+    color: #f5a5a5;
+}
+
+#submit-btn {
+    padding: 14px 32px;
+    border: none;
+    border-radius: var(--radius);
+    background: var(--green-mid);
+    color: var(--white);
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    margin: 0 auto;
+    width: 100%;
+    max-width: 200px;
+}
+
+#submit-btn:hover:not(:disabled) {
+    background: var(--green-light);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 15px rgba(45, 106, 79, 0.4);
+}
+
+#submit-btn:disabled {
+    cursor: default;
+    opacity: 0.6;
+}
+
+/* Feedback overlay */
+#feedback {
+    text-align: center;
+    padding: 12px;
+    border-radius: var(--radius);
+    font-size: 1.1rem;
+    font-weight: 600;
+    display: none;
+    animation: fadeIn 0.3s ease;
+}
+
+#feedback.show {
+    display: block;
+}
+
+#feedback.correct {
+    background: rgba(45, 106, 79, 0.25);
+    border: 1px solid var(--correct);
+    color: var(--green-pale);
+}
+
+#feedback.wrong {
+    background: rgba(214, 40, 40, 0.2);
+    border: 1px solid var(--wrong);
+    color: #f5a5a5;
+}
+
+#feedback.partial {
+    background: rgba(212, 160, 23, 0.18);
+    border: 1px solid #d4a017;
+    color: #f2d179;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Next button */
+#next-btn {
+    display: none;
+    padding: 14px 32px;
+    border: none;
+    border-radius: var(--radius);
+    background: var(--green-mid);
+    color: var(--white);
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    margin: 0 auto;
+    width: 100%;
+    max-width: 200px;
+}
+
+#next-btn:hover {
+    background: var(--green-light);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 15px rgba(45, 106, 79, 0.4);
+}
+
+#next-btn.show {
+    display: block;
+}
+
+/* Alt photo button */
+#alt-photo-btn {
+    display: none;
+    align-self: center;
+    padding: 8px 18px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 20px;
+    background: rgba(255, 255, 255, 0.06);
+    color: var(--cream);
+    font-size: 0.82rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    width: fit-content;
+    opacity: 0.7;
+}
+
+#alt-photo-btn:hover {
+    background: rgba(255, 255, 255, 0.12);
+    opacity: 1;
+    border-color: rgba(255, 255, 255, 0.3);
+}
+
+#alt-photo-btn:disabled {
+    cursor: wait;
+    opacity: 0.35;
+}
+
+#alt-photo-btn.show {
+    display: block;
+}
+
+/* Error / loading states */
+#error-message {
+    text-align: center;
+    padding: 20px;
+    background: rgba(214, 40, 40, 0.15);
+    border: 1px solid var(--wrong);
+    border-radius: var(--radius);
+    color: #f5a5a5;
+    display: none;
+}
+
+#error-message.show {
+    display: block;
+}
+
+#error-message .retry-btn {
+    margin-top: 12px;
+    padding: 10px 24px;
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    border-radius: var(--radius);
+    background: transparent;
+    color: var(--cream);
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+#error-message .retry-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+button:focus-visible,
+input:focus-visible,
+a:focus-visible {
+    outline: 3px solid var(--green-pale);
+    outline-offset: 3px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        scroll-behavior: auto !important;
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}
+
+/* Responsive */
+@media (max-width: 500px) {
+    body {
+        align-items: flex-start;
+    }
+
+    #wrapper {
+        padding-top: max(10px, env(safe-area-inset-top));
+        padding-right: max(10px, env(safe-area-inset-right));
+        padding-bottom: max(10px, env(safe-area-inset-bottom));
+        padding-left: max(10px, env(safe-area-inset-left));
+    }
+
+    main { padding: 16px; border-radius: 14px; }
+    h1 { font-size: 1.4rem; }
+    #submit-btn, #next-btn { max-width: 100%; }
+    #img-container { aspect-ratio: 4/3; }
+}
+
+@media (hover: none) and (pointer: coarse) {
+    #submit-btn:hover:not(:disabled),
+    #next-btn:hover {
+        transform: none;
+        box-shadow: none;
+    }
+}
+
+</style>
+</head>
+<body>
+<div id="wrapper">
+        <main>
+            <h1>🌲 Tree <span>ID</span></h1>
+            <p class="subtitle">Guess the tree species from the photo</p>
+
+            <!-- Score bar -->
+            <div id="score-bar">
+                <span><span class="score-label">Score</span> <span id="score-value" class="score-value" aria-live="polite">0 / 0</span></span>
+                <div id="progress-dots" class="round-progress" aria-hidden="true"></div>
+            </div>
+
+            <!-- Game area -->
+            <div id="frame">
+                <div id="img-container">
+                    <div class="loading-spinner"></div>
+                </div>
+
+                <button id="alt-photo-btn">🔄 Another photo</button>
+
+                <div id="feedback" role="status" aria-live="polite"></div>
+
+                <div id="answer-container">
+                    <h2>🌿 Name the tree</h2>
+                    <div class="answer-field">
+                        <label for="answer-common">Common name</label>
+                        <input id="answer-common" type="text" enterkeyhint="next" placeholder="e.g. Amur Maple" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false">
+                        <div id="common-hint" class="field-hint" aria-live="polite"></div>
+                    </div>
+                    <div class="answer-field">
+                        <label for="answer-sci">Scientific name</label>
+                        <input id="answer-sci" type="text" enterkeyhint="done" placeholder="e.g. Acer ginnala" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false">
+                        <div id="sci-hint" class="field-hint" aria-live="polite"></div>
+                    </div>
+                    <button id="submit-btn">Check answer</button>
+                </div>
+
+                <button id="next-btn"></button>
+            </div>
+
+            <!-- Error -->
+            <div id="error-message" role="alert"></div>
+        </main>
+    </div>
+<script>
+const TREE_SPECIES = [
+  {
+    "id": "acer-ginnala",
+    "commonName": "Amur Maple",
+    "scientificName": "Acer ginnala",
+    "inatTaxonId": 123638,
+    "group": "Unit 9",
+    "category": "tree",
+    "aliases": [
+      "Amur maple"
+    ]
+  },
+  {
+    "id": "acer-griseum",
+    "commonName": "Paperbark Maple",
+    "scientificName": "Acer griseum",
+    "inatTaxonId": 120525,
+    "group": "Unit 9",
+    "category": "tree",
+    "aliases": [
+      "Paperbark maple",
+      "Paper-bark Maple"
+    ]
+  },
+  {
+    "id": "acer-palmatum",
+    "commonName": "Japanese Maple",
+    "scientificName": "Acer palmatum",
+    "inatTaxonId": 63512,
+    "group": "Unit 9",
+    "category": "tree",
+    "aliases": [
+      "Japanese maple"
+    ]
+  },
+  {
+    "id": "acer-pensylvanicum",
+    "commonName": "Striped Maple",
+    "scientificName": "Acer pensylvanicum",
+    "inatTaxonId": 48095,
+    "group": "Unit 9",
+    "category": "tree",
+    "aliases": [
+      "Striped maple",
+      "Moosewood",
+      "Moose Maple"
+    ]
+  },
+  {
+    "id": "amelanchier-canadensis",
+    "commonName": "Serviceberry",
+    "scientificName": "Amelanchier canadensis",
+    "inatTaxonId": 133382,
+    "group": "Unit 9",
+    "category": "tree",
+    "aliases": [
+      "Canadian Serviceberry",
+      "Canada Serviceberry",
+      "Shadblow Serviceberry"
+    ]
+  },
+  {
+    "id": "aralia-spinosa",
+    "commonName": "Devil's Walking Stick",
+    "scientificName": "Aralia spinosa",
+    "inatTaxonId": 82813,
+    "group": "Unit 9",
+    "category": "tree",
+    "aliases": [
+      "Devil's walking stick",
+      "Devil's Walkingstick",
+      "Devils Walking Stick"
+    ]
+  },
+  {
+    "id": "cercis-canadensis",
+    "commonName": "Eastern Redbud",
+    "scientificName": "Cercis canadensis",
+    "inatTaxonId": 48502,
+    "group": "Unit 9",
+    "category": "tree",
+    "aliases": [
+      "Eastern redbud",
+      "Redbud"
+    ]
+  },
+  {
+    "id": "cornus-alternifolia",
+    "commonName": "Pagoda Dogwood",
+    "scientificName": "Cornus alternifolia",
+    "inatTaxonId": 54775,
+    "group": "Unit 10",
+    "category": "tree",
+    "aliases": [
+      "Pagoda dogwood",
+      "Alternate-leaved Dogwood",
+      "Alternate-leaf Dogwood"
+    ]
+  },
+  {
+    "id": "cornus-florida",
+    "commonName": "Flowering Dogwood",
+    "scientificName": "Cornus florida",
+    "inatTaxonId": 54777,
+    "group": "Unit 10",
+    "category": "tree",
+    "aliases": [
+      "Flowering dogwood"
+    ]
+  },
+  {
+    "id": "cornus-kousa",
+    "commonName": "Kousa Dogwood",
+    "scientificName": "Cornus kousa",
+    "inatTaxonId": 128614,
+    "group": "Unit 10",
+    "category": "tree",
+    "aliases": [
+      "Kousa dogwood",
+      "Kouse Dogwood",
+      "Korean Dogwood",
+      "Japanese Dogwood"
+    ]
+  },
+  {
+    "id": "cornus-mas",
+    "commonName": "Cornelian Cherry Dogwood",
+    "scientificName": "Cornus mas",
+    "inatTaxonId": 55858,
+    "group": "Unit 10",
+    "category": "tree",
+    "aliases": [
+      "Corneliancherry Dogwood",
+      "Cornelian Cherry",
+      "Cornelian-cherry Dogwood"
+    ]
+  },
+  {
+    "id": "cotinus-coggygria",
+    "commonName": "Common Smoketree",
+    "scientificName": "Cotinus coggygria",
+    "inatTaxonId": 133366,
+    "group": "Unit 10",
+    "category": "tree",
+    "aliases": [
+      "Common smoketree",
+      "Common Smoketree (Smokebush)",
+      "Smoketree",
+      "Smokebush",
+      "Smoke Bush",
+      "European Smoketree"
+    ]
+  },
+  {
+    "id": "elaeagnus-angustifolia",
+    "commonName": "Russian Olive",
+    "scientificName": "Elaeagnus angustifolia",
+    "inatTaxonId": 64694,
+    "group": "Unit 11",
+    "category": "tree",
+    "aliases": [
+      "Russian olive",
+      "Oleaster"
+    ]
+  },
+  {
+    "id": "magnolia-x-soulangeana",
+    "commonName": "Saucer Magnolia",
+    "scientificName": "Magnolia × soulangeana",
+    "inatTaxonId": 204586,
+    "group": "Unit 11",
+    "category": "tree",
+    "aliases": [
+      "Saucer magnolia",
+      "Tulip Magnolia",
+      "Chinese Magnolia"
+    ]
+  },
+  {
+    "id": "magnolia-stellata",
+    "commonName": "Star Magnolia",
+    "scientificName": "Magnolia stellata",
+    "inatTaxonId": 126710,
+    "group": "Unit 11",
+    "category": "tree",
+    "aliases": [
+      "Star magnolia"
+    ]
+  },
+  {
+    "id": "styrax-japonicus",
+    "commonName": "Japanese Snowbell",
+    "scientificName": "Styrax japonicus",
+    "inatTaxonId": 128570,
+    "group": "Unit 11",
+    "category": "tree",
+    "aliases": [
+      "Japanese snowbell",
+      "Japanese Storax"
+    ]
+  }
+];
+/**
+ * Tree ID Game — iNaturalist API
+ *
+ * Loads a curated species list from json/trees.json, fetches live photos from
+ * iNaturalist, and runs a common-name + scientific-name identification game.
+ */
+
+// ─── Configuration ───────────────────────────────────────────────────────────
+
+const INAT_API = 'https://api.inaturalist.org/v2';
+const API_TIMEOUT_MS = 15000;
+
+// ─── State ───────────────────────────────────────────────────────────────────
+
+let speciesList = [];
+let speciesDeck = [];
+let observationPool = [];
+let usedObservationIds = new Set();
+let currentSpecies = null;
+let currentObs = null;
+let currentPhotoIndex = 0;
+let isAnswered = false;
+let roundResults = [];
+let score = 0;
+let isLoading = false;
+let roundToken = 0;
+let photoToken = 0;
+
+const dom = {};
+
+// ─── Species data ────────────────────────────────────────────────────────────
+
+// BUILD_STANDALONE_LOAD_SPECIES_START
+function loadSpecies() {
+  speciesList = TREE_SPECIES;
+  return Promise.resolve(speciesList);
+}
+// BUILD_STANDALONE_LOAD_SPECIES_END
+
+// ─── API ─────────────────────────────────────────────────────────────────────
+
+async function fetchWithTimeout(url, timeoutMs = API_TIMEOUT_MS) {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+
+  try {
+    return await fetch(url, { signal: controller.signal });
+  } finally {
+    clearTimeout(timeoutId);
+  }
+}
+
+/** Fetch a page of research-grade observations for one iNaturalist taxon. */
+async function fetchObservations(species, perPage = 20) {
+  const params = new URLSearchParams({
+    taxon_id: String(species.inatTaxonId),
+    quality_grade: 'research',
+    photos: 'true',
+    per_page: String(perPage),
+    page: '1',
+    order: 'desc',
+    order_by: 'created_at',
+    fields: [
+      'id',
+      'uri',
+      'user.login',
+      'user.name',
+      'photos.url',
+      'photos.attribution',
+      'photos.license_code',
+      'taxon.id',
+      'taxon.name',
+      'taxon.preferred_common_name',
+    ].join(','),
+  });
+
+  const url = `${INAT_API}/observations?${params}`;
+  const resp = await fetchWithTimeout(url);
+  if (!resp.ok) throw new Error(`iNaturalist API error ${resp.status}`);
+
+  const data = await resp.json();
+  if (!Array.isArray(data.results)) {
+    throw new Error('iNaturalist returned an invalid response');
+  }
+
+  return data.results.filter((observation) => observation.photos?.length > 0);
+}
+
+async function fetchAltObservation(species) {
+  const fresh = await fetchObservations(species, 20);
+  const unused = fresh.filter((observation) => !usedObservationIds.has(observation.id));
+  const pool = unused.length > 0 ? unused : fresh;
+  return pool[Math.floor(Math.random() * pool.length)] || null;
+}
+
+// ─── Answer matching ─────────────────────────────────────────────────────────
+
+function normalize(value) {
+  return (value || '')
+    .toLowerCase()
+    .replace(/[''‘’"“”]/g, '')
+    .replace(/[×x]/g, 'x')
+    .replace(/[^\w\s]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function acceptedForms(species) {
+  const forms = new Set();
+  for (const name of [species.commonName, ...(species.aliases || [])]) {
+    if (name) forms.add(normalize(name));
+  }
+  return forms;
+}
+
+function matchesCommon(species, value) {
+  return acceptedForms(species).has(normalize(value));
+}
+
+function matchesScientific(species, value) {
+  return normalize(value) === normalize(species.scientificName);
+}
+
+// ─── Species order ───────────────────────────────────────────────────────────
+
+function shuffled(items) {
+  const copy = [...items];
+  for (let index = copy.length - 1; index > 0; index -= 1) {
+    const randomIndex = Math.floor(Math.random() * (index + 1));
+    [copy[index], copy[randomIndex]] = [copy[randomIndex], copy[index]];
+  }
+  return copy;
+}
+
+function takeNextSpecies() {
+  if (speciesDeck.length === 0) {
+    speciesDeck = shuffled(speciesList);
+
+    // Avoid an immediate repeat where two shuffled deck cycles meet.
+    if (speciesDeck.length > 1 && speciesDeck[0].id === currentSpecies?.id) {
+      [speciesDeck[0], speciesDeck[1]] = [speciesDeck[1], speciesDeck[0]];
+    }
+  }
+
+  return speciesDeck.shift();
+}
+
+// ─── Game logic ──────────────────────────────────────────────────────────────
+
+async function startGame() {
+  score = 0;
+  roundResults = [];
+  speciesDeck = [];
+  usedObservationIds.clear();
+  observationPool = [];
+  currentSpecies = null;
+  currentObs = null;
+  isAnswered = false;
+  isLoading = false;
+
+  dom.frame.style.display = 'flex';
+  dom.errorMessage.classList.remove('show');
+  dom.nextBtn.classList.remove('show');
+  dom.feedback.classList.remove('show');
+  dom.altPhotoBtn.classList.remove('show');
+
+  if (speciesList.length === 0) {
+    try {
+      await loadSpecies();
+    } catch (error) {
+      console.error(error);
+      showError('Failed to load the tree list.');
+      return;
+    }
+  }
+
+  startRound();
+}
+
+function startRound() {
+  roundToken += 1;
+  photoToken += 1;
+  isAnswered = false;
+  isLoading = false;
+  currentObs = null;
+  currentPhotoIndex = 0;
+  currentSpecies = takeNextSpecies();
+
+  dom.nextBtn.classList.remove('show');
+  dom.feedback.classList.remove('show');
+  dom.altPhotoBtn.classList.remove('show');
+  dom.altPhotoBtn.disabled = false;
+
+  dom.answerCommon.disabled = false;
+  dom.answerSci.disabled = false;
+  dom.answerCommon.value = '';
+  dom.answerSci.value = '';
+  dom.answerCommon.classList.remove('field-correct', 'field-wrong');
+  dom.answerSci.classList.remove('field-correct', 'field-wrong');
+  dom.commonHint.textContent = '';
+  dom.sciHint.textContent = '';
+  dom.submitBtn.disabled = true;
+
+  updateScoreBar();
+  updateProgress();
+  loadPhoto(currentSpecies, roundToken);
+  if (shouldAutoFocusAnswer()) dom.answerCommon.focus();
+}
+
+async function loadPhoto(species, requestRoundToken = roundToken) {
+  if (!species || requestRoundToken !== roundToken) return;
+
+  isLoading = true;
+  dom.submitBtn.disabled = true;
+  dom.altPhotoBtn.classList.remove('show');
+  setAnswerFieldsDisabled(false);
+  showPhotoLoading();
+
+  try {
+    let observation = observationPool.find(
+      (candidate) => candidate._speciesId === species.id && !usedObservationIds.has(candidate.id),
+    );
+
+    if (!observation) {
+      observation = await fetchAltObservation(species);
+      if (requestRoundToken !== roundToken) return;
+
+      if (observation) {
+        observation._speciesId = species.id;
+        observationPool.push(observation);
+      }
+    }
+
+    if (!observation) {
+      showPhotoUnavailable('No usable iNaturalist photo was found for this tree.');
+      return;
+    }
+
+    currentObs = observation;
+    usedObservationIds.add(observation.id);
+    currentPhotoIndex = 0;
+
+    const displayed = await showPhoto(observation, 0, requestRoundToken);
+    if (requestRoundToken !== roundToken) return;
+
+    if (!displayed) {
+      showPhotoUnavailable('The tree photo could not be displayed.');
+      return;
+    }
+
+    dom.submitBtn.disabled = false;
+    dom.altPhotoBtn.disabled = false;
+    dom.altPhotoBtn.classList.add('show');
+  } catch (error) {
+    if (requestRoundToken !== roundToken) return;
+    console.error('Could not load tree photo:', error);
+    showPhotoUnavailable('Could not reach iNaturalist or load this photo.');
+  } finally {
+    if (requestRoundToken === roundToken) isLoading = false;
+  }
+}
+
+async function handleAnotherPhoto() {
+  if (isLoading || isAnswered || !currentSpecies || !currentObs) return;
+
+  const requestRoundToken = roundToken;
+  const previousObservation = currentObs;
+  const previousPhotoIndex = currentPhotoIndex;
+  let photoReady = false;
+
+  isLoading = true;
+  dom.submitBtn.disabled = true;
+  dom.altPhotoBtn.disabled = true;
+
+  try {
+    let nextObservation = currentObs;
+    let nextPhotoIndex = currentPhotoIndex;
+
+    if (currentObs.photos.length > 1) {
+      nextPhotoIndex = (currentPhotoIndex + 1) % currentObs.photos.length;
+    } else {
+      showPhotoLoading();
+      nextObservation = await fetchAltObservation(currentSpecies);
+      if (requestRoundToken !== roundToken) return;
+
+      if (!nextObservation) {
+        throw new Error('No alternative observation was available');
+      }
+
+      nextObservation._speciesId = currentSpecies.id;
+      observationPool.push(nextObservation);
+      usedObservationIds.add(nextObservation.id);
+      nextPhotoIndex = 0;
+    }
+
+    const displayed = await showPhoto(nextObservation, nextPhotoIndex, requestRoundToken);
+    if (requestRoundToken !== roundToken) return;
+    if (!displayed) throw new Error('Alternative photo could not be displayed');
+
+    currentObs = nextObservation;
+    currentPhotoIndex = nextPhotoIndex;
+    photoReady = true;
+  } catch (error) {
+    if (requestRoundToken !== roundToken) return;
+    console.error('Could not load another photo:', error);
+
+    currentObs = previousObservation;
+    currentPhotoIndex = previousPhotoIndex;
+    const restored = await showPhoto(previousObservation, previousPhotoIndex, requestRoundToken);
+    if (!restored) {
+      showPhotoUnavailable('The tree photo could not be restored.');
+      return;
+    }
+
+    photoReady = true;
+    showTemporaryFeedback('Could not load another photo. Please try again.', 'wrong');
+  } finally {
+    if (requestRoundToken === roundToken && !isAnswered && photoReady) {
+      isLoading = false;
+      dom.submitBtn.disabled = false;
+      dom.altPhotoBtn.disabled = false;
+      dom.altPhotoBtn.classList.add('show');
+    }
+  }
+}
+
+function handleAnswer() {
+  if (isAnswered || isLoading || !currentObs) return;
+
+  const commonValue = dom.answerCommon.value;
+  const scientificValue = dom.answerSci.value;
+  if (!commonValue.trim() && !scientificValue.trim()) return;
+
+  isAnswered = true;
+
+  const commonCorrect = matchesCommon(currentSpecies, commonValue);
+  const scientificCorrect = matchesScientific(currentSpecies, scientificValue);
+  const points = (commonCorrect ? 0.5 : 0) + (scientificCorrect ? 0.5 : 0);
+  score += points;
+  roundResults.push(points);
+
+  setAnswerFieldsDisabled(true);
+  dom.submitBtn.disabled = true;
+
+  markField(dom.answerCommon, dom.commonHint, commonCorrect, currentSpecies.commonName);
+  markField(dom.answerSci, dom.sciHint, scientificCorrect, currentSpecies.scientificName);
+
+  const name = currentSpecies.commonName || currentSpecies.scientificName;
+  if (points === 1) {
+    showFeedback(`✅ Correct! ${name}`, 'correct');
+  } else if (points === 0.5) {
+    const wrongField = commonCorrect ? 'scientific name' : 'common name';
+    showFeedback(`🟡 Half right — the ${wrongField} was wrong. It’s ${name}.`, 'partial');
+  } else {
+    showFeedback(`❌ It was ${name}.`, 'wrong');
+  }
+
+  revealPhotoAttribution();
+  updateScoreBar();
+  updateProgress();
+
+  dom.altPhotoBtn.classList.remove('show');
+  dom.nextBtn.textContent = 'Next Tree →';
+  dom.nextBtn.classList.add('show');
+  dom.nextBtn.focus();
+}
+
+function markField(input, hintElement, correct, correctValue) {
+  input.classList.add(correct ? 'field-correct' : 'field-wrong');
+  hintElement.textContent = correct ? `✓ ${correctValue}` : `✗ ${correctValue}`;
+  hintElement.className = `field-hint ${correct ? 'hint-correct' : 'hint-wrong'}`;
+}
+
+function setAnswerFieldsDisabled(disabled) {
+  dom.answerCommon.disabled = disabled;
+  dom.answerSci.disabled = disabled;
+}
+
+function shouldAutoFocusAnswer() {
+  const coarsePointer = window.matchMedia?.('(pointer: coarse)').matches;
+  const touchDevice = navigator.maxTouchPoints > 0;
+  return !coarsePointer && !touchDevice;
+}
+
+function advanceRound() {
+  startRound();
+}
+
+// ─── Photo rendering ─────────────────────────────────────────────────────────
+
+function showPhotoLoading() {
+  const spinner = document.createElement('div');
+  spinner.className = 'loading-spinner';
+  spinner.setAttribute('role', 'status');
+  spinner.setAttribute('aria-label', 'Loading tree photo');
+  dom.imgContainer.replaceChildren(spinner);
+}
+
+function showPhotoUnavailable(message) {
+  isLoading = false;
+  photoToken += 1;
+  dom.submitBtn.disabled = true;
+  dom.altPhotoBtn.disabled = false;
+  dom.altPhotoBtn.classList.remove('show');
+  setAnswerFieldsDisabled(true);
+
+  const panel = document.createElement('div');
+  panel.className = 'photo-message';
+
+  const icon = document.createElement('span');
+  icon.className = 'photo-message-icon';
+  icon.setAttribute('aria-hidden', 'true');
+  icon.textContent = '🌿';
+
+  const text = document.createElement('p');
+  text.textContent = message;
+
+  const actions = document.createElement('div');
+  actions.className = 'photo-actions';
+
+  const retryButton = document.createElement('button');
+  retryButton.type = 'button';
+  retryButton.textContent = 'Retry photo';
+  retryButton.addEventListener('click', () => loadPhoto(currentSpecies, roundToken));
+
+  const skipButton = document.createElement('button');
+  skipButton.type = 'button';
+  skipButton.className = 'secondary';
+  skipButton.textContent = 'Skip tree';
+  skipButton.addEventListener('click', startRound);
+
+  actions.append(retryButton, skipButton);
+  panel.append(icon, text, actions);
+  dom.imgContainer.replaceChildren(panel);
+  retryButton.focus();
+}
+
+function loadImage(url) {
+  return new Promise((resolve, reject) => {
+    const image = new Image();
+    image.alt = 'Tree identification photo';
+    image.onload = () => resolve(image);
+    image.onerror = () => reject(new Error(`Could not load image: ${url}`));
+    image.src = url;
+  });
+}
+
+async function showPhoto(observation, index = 0, requestRoundToken = roundToken) {
+  const photo = observation?.photos?.[index] || observation?.photos?.[0];
+  if (!photo?.url) return false;
+
+  const requestPhotoToken = ++photoToken;
+  showPhotoLoading();
+
+  const mediumUrl = photo.url.replace('/square.', '/medium.');
+  const candidateUrls = [...new Set([mediumUrl, photo.url])];
+
+  for (const url of candidateUrls) {
+    try {
+      const image = await loadImage(url);
+      if (requestRoundToken !== roundToken || requestPhotoToken !== photoToken) return false;
+
+      currentPhotoIndex = observation.photos.indexOf(photo);
+      renderPhoto(image, observation, photo);
+      return true;
+    } catch (error) {
+      // Try the next image size before reporting a failure.
+    }
+  }
+
+  return false;
+}
+
+function renderPhoto(image, observation, photo) {
+  const caption = document.createElement('div');
+  caption.className = 'photo-label';
+  caption.textContent = '📸 iNaturalist observation';
+
+  image.alt = isAnswered
+    ? `Photo of ${currentSpecies.commonName || currentSpecies.scientificName}`
+    : 'Tree identification photo';
+
+  dom.imgContainer.replaceChildren(image, caption);
+
+  if (isAnswered) renderPhotoAttribution(caption, observation, photo);
+}
+
+function revealPhotoAttribution() {
+  const image = dom.imgContainer.querySelector('img');
+  const caption = dom.imgContainer.querySelector('.photo-label');
+  const photo = currentObs?.photos?.[currentPhotoIndex] || currentObs?.photos?.[0];
+  if (!image || !caption || !photo || !currentObs) return;
+
+  image.alt = `Photo of ${currentSpecies.commonName || currentSpecies.scientificName}`;
+  renderPhotoAttribution(caption, currentObs, photo);
+}
+
+function renderPhotoAttribution(caption, observation, photo) {
+  const observationUrl = observation.uri || `https://www.inaturalist.org/observations/${observation.id}`;
+  const attribution = photo.attribution
+    || observation.user?.name
+    || observation.user?.login
+    || 'iNaturalist contributor';
+
+  const link = document.createElement('a');
+  link.href = observationUrl;
+  link.target = '_blank';
+  link.rel = 'noopener noreferrer';
+  link.textContent = `📸 ${attribution} · View on iNaturalist`;
+
+  caption.replaceChildren(link);
+}
+
+// ─── UI rendering ────────────────────────────────────────────────────────────
+
+function showFeedback(message, type) {
+  dom.feedback.textContent = message;
+  dom.feedback.className = `show ${type}`;
+}
+
+function showTemporaryFeedback(message, type) {
+  showFeedback(message, type);
+  setTimeout(() => {
+    if (!isAnswered) dom.feedback.classList.remove('show');
+  }, 2500);
+}
+
+function updateScoreBar() {
+  dom.scoreValue.textContent = `${formatScore(score)} / ${roundResults.length}`;
+}
+
+function formatScore(value) {
+  return value % 1 === 0 ? String(value) : value.toFixed(1);
+}
+
+function updateProgress() {
+  const maxDots = 12;
+  const recent = roundResults.slice(-maxDots);
+  dom.progressDots.replaceChildren();
+
+  for (const points of recent) {
+    const dot = document.createElement('span');
+    dot.className = `dot ${points === 1 ? 'correct' : points === 0.5 ? 'partial' : 'wrong'}`;
+    dom.progressDots.appendChild(dot);
+  }
+
+  if (!isAnswered) {
+    const active = document.createElement('span');
+    active.className = 'dot active';
+    dom.progressDots.appendChild(active);
+  }
+}
+
+function showError(message) {
+  dom.frame.style.display = 'none';
+  dom.errorMessage.classList.add('show');
+
+  const text = document.createElement('p');
+  text.textContent = message;
+
+  const retryButton = document.createElement('button');
+  retryButton.type = 'button';
+  retryButton.className = 'retry-btn';
+  retryButton.textContent = 'Retry';
+  retryButton.addEventListener('click', () => window.location.reload());
+
+  dom.errorMessage.replaceChildren(text, retryButton);
+}
+
+// ─── Init ────────────────────────────────────────────────────────────────────
+
+document.addEventListener('DOMContentLoaded', () => {
+  if (window.matchMedia?.('(display-mode: standalone)').matches || navigator.standalone === true) {
+    document.documentElement.classList.add('standalone');
+  }
+  dom.imgContainer = document.getElementById('img-container');
+  dom.feedback = document.getElementById('feedback');
+  dom.nextBtn = document.getElementById('next-btn');
+  dom.altPhotoBtn = document.getElementById('alt-photo-btn');
+  dom.scoreValue = document.getElementById('score-value');
+  dom.progressDots = document.getElementById('progress-dots');
+  dom.frame = document.getElementById('frame');
+  dom.errorMessage = document.getElementById('error-message');
+  dom.answerCommon = document.getElementById('answer-common');
+  dom.answerSci = document.getElementById('answer-sci');
+  dom.submitBtn = document.getElementById('submit-btn');
+  dom.commonHint = document.getElementById('common-hint');
+  dom.sciHint = document.getElementById('sci-hint');
+
+  dom.nextBtn.addEventListener('click', advanceRound);
+  dom.altPhotoBtn.addEventListener('click', handleAnotherPhoto);
+  dom.submitBtn.addEventListener('click', handleAnswer);
+
+  for (const input of [dom.answerCommon, dom.answerSci]) {
+    input.addEventListener('keydown', (event) => {
+      if (event.key === 'Enter') handleAnswer();
+    });
+  }
+
+  startGame();
+});
+
+</script>
+</body>
+</html>
