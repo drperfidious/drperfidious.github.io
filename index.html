@@ -8,12 +8,12 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Tree ID">
+<meta name="apple-mobile-web-app-title" content="Annuals ID">
 <meta name="format-detection" content="telephone=no">
 <link rel="manifest" href="manifest.webmanifest">
-<title>Tree ID — Guess the Tree!</title>
+<title>Annuals ID — HORT 1230 Quiz 2</title>
 <style>
-/* Tree ID Game - Styles */
+/* Annuals ID Game - Styles */
 :root {
     --green-dark: #1a3c34;
     --green-mid: #2d6a4f;
@@ -514,6 +514,9 @@ a:focus-visible {
     }
 }
 
+#study-details { padding: 14px 16px; border-radius: var(--radius); background: rgba(0, 0, 0, 0.22); font-size: 0.9rem; line-height: 1.6; overflow-wrap: anywhere; }
+#study-details p + p { margin-top: 8px; }
+
 /* Responsive */
 @media (max-width: 500px) {
     body {
@@ -546,8 +549,8 @@ a:focus-visible {
 <body>
 <div id="wrapper">
         <main>
-            <h1>🌲 Tree <span>ID</span></h1>
-            <p class="subtitle">Guess the tree species from the photo</p>
+            <h1>🌸 Annuals <span>ID</span></h1>
+            <p class="subtitle">HORT 1230 · Annuals Quiz 2 · 15 plants</p>
 
             <!-- Score bar -->
             <div id="score-bar">
@@ -562,19 +565,21 @@ a:focus-visible {
                 </div>
 
                 <button id="alt-photo-btn">🔄 Another photo</button>
+                <p class="subtitle" style="margin-bottom:0">Identify the plant from the photo. Some photos show the species or genus rather than the exact course cultivar or hybrid.</p>
 
                 <div id="feedback" role="status" aria-live="polite"></div>
+                <div id="study-details" hidden aria-live="polite"></div>
 
                 <div id="answer-container">
-                    <h2>🌿 Name the tree</h2>
+                    <h2>🌿 Name the annual</h2>
                     <div class="answer-field">
                         <label for="answer-common">Common name</label>
-                        <input id="answer-common" type="text" enterkeyhint="next" placeholder="e.g. Amur Maple" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false">
+                        <input id="answer-common" type="text" enterkeyhint="next" placeholder="Enter the common name" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false">
                         <div id="common-hint" class="field-hint" aria-live="polite"></div>
                     </div>
                     <div class="answer-field">
                         <label for="answer-sci">Scientific name</label>
-                        <input id="answer-sci" type="text" enterkeyhint="done" placeholder="e.g. Acer ginnala" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false">
+                        <input id="answer-sci" type="text" enterkeyhint="done" placeholder="Enter the scientific name" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false">
                         <div id="sci-hint" class="field-hint" aria-live="polite"></div>
                     </div>
                     <button id="submit-btn">Check answer</button>
@@ -588,212 +593,165 @@ a:focus-visible {
         </main>
     </div>
 <script>
-const TREE_SPECIES = [
+const ANNUAL_SPECIES = [
   {
-    "id": "acer-ginnala",
-    "commonName": "Amur Maple",
-    "scientificName": "Acer ginnala",
-    "inatTaxonId": 123638,
-    "group": "Unit 9",
-    "category": "tree",
-    "aliases": [
-      "Amur maple"
-    ]
+    "id": "ricinus-communis",
+    "commonName": "Castor bean",
+    "scientificName": "Ricinus communis",
+    "inatTaxonId": 56739,
+    "pronunciation": "Rice-in-us"
   },
   {
-    "id": "acer-griseum",
-    "commonName": "Paperbark Maple",
-    "scientificName": "Acer griseum",
-    "inatTaxonId": 120525,
-    "group": "Unit 9",
-    "category": "tree",
+    "id": "salvia-farinacea",
+    "commonName": "Blue victoria salvia",
+    "scientificName": "Salvia farinacea ‘Victoria Blue’",
+    "inatTaxonId": 148006,
     "aliases": [
-      "Paperbark maple",
-      "Paper-bark Maple"
-    ]
+      "Victoria blue salvia",
+      "Blue Victoria sage"
+    ],
+    "pronunciation": "Sahl-vee-ah",
+    "photoNote": "Species-level photo; the Victoria Blue cultivar is not verified."
   },
   {
-    "id": "acer-palmatum",
-    "commonName": "Japanese Maple",
-    "scientificName": "Acer palmatum",
-    "inatTaxonId": 63512,
-    "group": "Unit 9",
-    "category": "tree",
+    "id": "salvia-splendens",
+    "commonName": "Salvia",
+    "scientificName": "Salvia splendens",
+    "inatTaxonId": 143203,
     "aliases": [
-      "Japanese maple"
-    ]
+      "Scarlet sage",
+      "Scarlet salvia"
+    ],
+    "pronunciation": "Sahl-vee-ah"
   },
   {
-    "id": "acer-pensylvanicum",
-    "commonName": "Striped Maple",
-    "scientificName": "Acer pensylvanicum",
-    "inatTaxonId": 48095,
-    "group": "Unit 9",
-    "category": "tree",
-    "aliases": [
-      "Striped maple",
-      "Moosewood",
-      "Moose Maple"
-    ]
+    "id": "senecio-cineraria",
+    "commonName": "Dusty miller",
+    "scientificName": "Senecio cineraria",
+    "scientificAliases": [
+      "Jacobaea maritima"
+    ],
+    "inatTaxonId": 357682,
+    "pronunciation": "sah-NEE-sec-oh sin-err-AIR-ee-ah",
+    "studyNote": "The document also gives the current name Jacobaea maritima. Either name is accepted."
   },
   {
-    "id": "amelanchier-canadensis",
-    "commonName": "Serviceberry",
-    "scientificName": "Amelanchier canadensis",
-    "inatTaxonId": 133382,
-    "group": "Unit 9",
-    "category": "tree",
-    "aliases": [
-      "Canadian Serviceberry",
-      "Canada Serviceberry",
-      "Shadblow Serviceberry"
-    ]
+    "id": "tagetes-erecta",
+    "commonName": "African marigold",
+    "scientificName": "Tagetes erecta",
+    "inatTaxonId": 79312,
+    "pronunciation": "Tage-et-ees"
   },
   {
-    "id": "aralia-spinosa",
-    "commonName": "Devil's Walking Stick",
-    "scientificName": "Aralia spinosa",
-    "inatTaxonId": 82813,
-    "group": "Unit 9",
-    "category": "tree",
-    "aliases": [
-      "Devil's walking stick",
-      "Devil's Walkingstick",
-      "Devils Walking Stick"
-    ]
+    "id": "tagetes-patula",
+    "commonName": "French marigold",
+    "scientificName": "Tagetes patula",
+    "inatTaxonId": 777243,
+    "pronunciation": "Tage-et-ees"
   },
   {
-    "id": "cercis-canadensis",
-    "commonName": "Eastern Redbud",
-    "scientificName": "Cercis canadensis",
-    "inatTaxonId": 48502,
-    "group": "Unit 9",
-    "category": "tree",
-    "aliases": [
-      "Eastern redbud",
-      "Redbud"
-    ]
+    "id": "verbena-hybrida",
+    "commonName": "Garden verbena",
+    "scientificName": "Verbena × hybrida",
+    "scientificAliases": [
+      "Verbena hybrida",
+      "Glandularia × hybrida",
+      "Glandularia hybrida"
+    ],
+    "inatTaxonId": 181676,
+    "pronunciation": "vr·bee·nuh"
   },
   {
-    "id": "cornus-alternifolia",
-    "commonName": "Pagoda Dogwood",
-    "scientificName": "Cornus alternifolia",
-    "inatTaxonId": 54775,
-    "group": "Unit 10",
-    "category": "tree",
+    "id": "verbena-bonariensis",
+    "commonName": "Tall verbena",
+    "scientificName": "Verbena bonariensis",
+    "inatTaxonId": 79487,
     "aliases": [
-      "Pagoda dogwood",
-      "Alternate-leaved Dogwood",
-      "Alternate-leaf Dogwood"
-    ]
+      "Purpletop vervain",
+      "Argentinian vervain"
+    ],
+    "pronunciation": "Ver-Bee-nah bon-ar-ee-EN-sis"
   },
   {
-    "id": "cornus-florida",
-    "commonName": "Flowering Dogwood",
-    "scientificName": "Cornus florida",
-    "inatTaxonId": 54777,
-    "group": "Unit 10",
-    "category": "tree",
+    "id": "zinnia-elegans",
+    "commonName": "Common zinnia",
+    "scientificName": "Zinnia elegans",
+    "inatTaxonId": 181901,
     "aliases": [
-      "Flowering dogwood"
-    ]
+      "Zinnia"
+    ],
+    "pronunciation": "Zin-nee-ah"
   },
   {
-    "id": "cornus-kousa",
-    "commonName": "Kousa Dogwood",
-    "scientificName": "Cornus kousa",
-    "inatTaxonId": 128614,
-    "group": "Unit 10",
-    "category": "tree",
-    "aliases": [
-      "Kousa dogwood",
-      "Kouse Dogwood",
-      "Korean Dogwood",
-      "Japanese Dogwood"
-    ]
+    "id": "angelonia-angustifolia",
+    "commonName": "Angelonia",
+    "scientificName": "Angelonia angustifolia",
+    "scientificAliases": [
+      "Angelonia agustifolia"
+    ],
+    "inatTaxonId": 136413,
+    "pronunciation": "an-gel-OH-knee-uh an-GUST-i-foal-ee-uh",
+    "studyNote": "The document spells this “Angelonia agustifolia”; the corrected spelling is angustifolia. Both are accepted."
   },
   {
-    "id": "cornus-mas",
-    "commonName": "Cornelian Cherry Dogwood",
-    "scientificName": "Cornus mas",
-    "inatTaxonId": 55858,
-    "group": "Unit 10",
-    "category": "tree",
-    "aliases": [
-      "Corneliancherry Dogwood",
-      "Cornelian Cherry",
-      "Cornelian-cherry Dogwood"
-    ]
+    "id": "alternanthera-ficoidea",
+    "commonName": "Alternanthera",
+    "scientificName": "Alternanthera ficoidea",
+    "inatTaxonId": 279260,
+    "pronunciation": "Alter-naan-there-ah fic-oiy-dee-ah"
   },
   {
-    "id": "cotinus-coggygria",
-    "commonName": "Common Smoketree",
-    "scientificName": "Cotinus coggygria",
-    "inatTaxonId": 133366,
-    "group": "Unit 10",
-    "category": "tree",
+    "id": "antirrhinum-majus",
+    "commonName": "Common snapdragon",
+    "scientificName": "Antirrhinum majus",
+    "inatTaxonId": 48969,
     "aliases": [
-      "Common smoketree",
-      "Common Smoketree (Smokebush)",
-      "Smoketree",
-      "Smokebush",
-      "Smoke Bush",
-      "European Smoketree"
-    ]
+      "Snapdragon"
+    ],
+    "pronunciation": "An-ter-I-num mah-jus"
   },
   {
-    "id": "elaeagnus-angustifolia",
-    "commonName": "Russian Olive",
-    "scientificName": "Elaeagnus angustifolia",
-    "inatTaxonId": 64694,
-    "group": "Unit 11",
-    "category": "tree",
-    "aliases": [
-      "Russian olive",
-      "Oleaster"
-    ]
+    "id": "dahlia-hybrids",
+    "commonName": "Dahlia",
+    "scientificName": "Dahlia hybrids",
+    "scientificAliases": [
+      "Dahlia hybrid",
+      "Dahlia × hortensis",
+      "Dahlia hortensis"
+    ],
+    "inatTaxonId": 1643869,
+    "pronunciation": "Dah-lee-ah"
   },
   {
-    "id": "magnolia-x-soulangeana",
-    "commonName": "Saucer Magnolia",
-    "scientificName": "Magnolia × soulangeana",
-    "inatTaxonId": 204586,
-    "group": "Unit 11",
-    "category": "tree",
-    "aliases": [
-      "Saucer magnolia",
-      "Tulip Magnolia",
-      "Chinese Magnolia"
-    ]
+    "id": "petunia-hybrida",
+    "commonName": "Petunia",
+    "scientificName": "Petunia hybrida",
+    "scientificAliases": [
+      "Petunia × hybrida",
+      "Petunia × atkinsiana",
+      "Petunia atkinsiana"
+    ],
+    "inatTaxonId": 170914,
+    "pronunciation": "Peh-tune-eea"
   },
   {
-    "id": "magnolia-stellata",
-    "commonName": "Star Magnolia",
-    "scientificName": "Magnolia stellata",
-    "inatTaxonId": 126710,
-    "group": "Unit 11",
-    "category": "tree",
-    "aliases": [
-      "Star magnolia"
-    ]
-  },
-  {
-    "id": "styrax-japonicus",
-    "commonName": "Japanese Snowbell",
-    "scientificName": "Styrax japonicus",
-    "inatTaxonId": 128570,
-    "group": "Unit 11",
-    "category": "tree",
-    "aliases": [
-      "Japanese snowbell",
-      "Japanese Storax"
-    ]
+    "id": "calibrachoa-hybrids",
+    "commonName": "Million bells",
+    "scientificName": "Calibrachoa hybrids",
+    "scientificAliases": [
+      "Calibrachoa hybrid"
+    ],
+    "inatTaxonId": 59033,
+    "observationRank": "genus",
+    "cultivatedOnly": true,
+    "pronunciation": "kal-ih-brac-oa",
+    "photoNote": "Genus-level photo; garden hybrid identity is not verified."
   }
 ];
 /**
- * Tree ID Game — iNaturalist API
+ * Annuals ID Game — iNaturalist API
  *
- * Loads a curated species list from json/trees.json, fetches live photos from
+ * Loads the embedded HORT 1230 Annuals Quiz 2 list, fetches live photos from
  * iNaturalist, and runs a common-name + scientific-name identification game.
  */
 
@@ -824,7 +782,7 @@ const dom = {};
 
 // BUILD_STANDALONE_LOAD_SPECIES_START
 function loadSpecies() {
-  speciesList = TREE_SPECIES;
+  speciesList = ANNUAL_SPECIES;
   return Promise.resolve(speciesList);
 }
 // BUILD_STANDALONE_LOAD_SPECIES_END
@@ -842,11 +800,10 @@ async function fetchWithTimeout(url, timeoutMs = API_TIMEOUT_MS) {
   }
 }
 
-/** Fetch a page of research-grade observations for one iNaturalist taxon. */
+/** Include cultivated garden plants as well as wild observations. */
 async function fetchObservations(species, perPage = 20) {
   const params = new URLSearchParams({
     taxon_id: String(species.inatTaxonId),
-    quality_grade: 'research',
     photos: 'true',
     per_page: String(perPage),
     page: '1',
@@ -865,6 +822,9 @@ async function fetchObservations(species, perPage = 20) {
       'taxon.preferred_common_name',
     ].join(','),
   });
+
+  if (species.observationRank) params.set('rank', species.observationRank);
+  if (species.cultivatedOnly) params.set('captive', 'true');
 
   const url = `${INAT_API}/observations?${params}`;
   const resp = await fetchWithTimeout(url);
@@ -891,7 +851,8 @@ function normalize(value) {
   return (value || '')
     .toLowerCase()
     .replace(/[''‘’"“”]/g, '')
-    .replace(/[×x]/g, 'x')
+    .replace(/×/g, ' x ')
+    .replace(/\bx(?=hybrida\b|atkinsiana\b|hortensis\b)/g, 'x ')
     .replace(/[^\w\s]/g, ' ')
     .replace(/\s+/g, ' ')
     .trim();
@@ -910,7 +871,8 @@ function matchesCommon(species, value) {
 }
 
 function matchesScientific(species, value) {
-  return normalize(value) === normalize(species.scientificName);
+  const names = [species.scientificName].concat(species.scientificAliases || []);
+  return names.some((name) => normalize(value) === normalize(name));
 }
 
 // ─── Species order ───────────────────────────────────────────────────────────
@@ -961,7 +923,7 @@ async function startGame() {
       await loadSpecies();
     } catch (error) {
       console.error(error);
-      showError('Failed to load the tree list.');
+      showError('Failed to load the annuals list.');
       return;
     }
   }
@@ -989,6 +951,8 @@ function startRound() {
   dom.answerSci.value = '';
   dom.answerCommon.classList.remove('field-correct', 'field-wrong');
   dom.answerSci.classList.remove('field-correct', 'field-wrong');
+  dom.studyDetails.hidden = true;
+  dom.studyDetails.replaceChildren();
   dom.commonHint.textContent = '';
   dom.sciHint.textContent = '';
   dom.submitBtn.disabled = true;
@@ -1024,7 +988,7 @@ async function loadPhoto(species, requestRoundToken = roundToken) {
     }
 
     if (!observation) {
-      showPhotoUnavailable('No usable iNaturalist photo was found for this tree.');
+      showPhotoUnavailable('No usable iNaturalist photo was found for this annual.');
       return;
     }
 
@@ -1036,7 +1000,7 @@ async function loadPhoto(species, requestRoundToken = roundToken) {
     if (requestRoundToken !== roundToken) return;
 
     if (!displayed) {
-      showPhotoUnavailable('The tree photo could not be displayed.');
+      showPhotoUnavailable('The plant photo could not be displayed.');
       return;
     }
 
@@ -1045,7 +1009,7 @@ async function loadPhoto(species, requestRoundToken = roundToken) {
     dom.altPhotoBtn.classList.add('show');
   } catch (error) {
     if (requestRoundToken !== roundToken) return;
-    console.error('Could not load tree photo:', error);
+    console.error('Could not load plant photo:', error);
     showPhotoUnavailable('Could not reach iNaturalist or load this photo.');
   } finally {
     if (requestRoundToken === roundToken) isLoading = false;
@@ -1100,7 +1064,7 @@ async function handleAnotherPhoto() {
     currentPhotoIndex = previousPhotoIndex;
     const restored = await showPhoto(previousObservation, previousPhotoIndex, requestRoundToken);
     if (!restored) {
-      showPhotoUnavailable('The tree photo could not be restored.');
+      showPhotoUnavailable('The plant photo could not be restored.');
       return;
     }
 
@@ -1147,12 +1111,24 @@ function handleAnswer() {
     showFeedback(`❌ It was ${name}.`, 'wrong');
   }
 
+  const pronunciation = document.createElement('p');
+  pronunciation.textContent = `Pronunciation (course guide): ${currentSpecies.pronunciation}`;
+  dom.studyDetails.replaceChildren(pronunciation);
+  for (const note of [currentSpecies.studyNote, currentSpecies.photoNote]) {
+    if (note) {
+      const paragraph = document.createElement('p');
+      paragraph.textContent = note;
+      dom.studyDetails.append(paragraph);
+    }
+  }
+  dom.studyDetails.hidden = false;
+
   revealPhotoAttribution();
   updateScoreBar();
   updateProgress();
 
   dom.altPhotoBtn.classList.remove('show');
-  dom.nextBtn.textContent = 'Next Tree →';
+  dom.nextBtn.textContent = 'Next Annual →';
   dom.nextBtn.classList.add('show');
   dom.nextBtn.focus();
 }
@@ -1184,7 +1160,7 @@ function showPhotoLoading() {
   const spinner = document.createElement('div');
   spinner.className = 'loading-spinner';
   spinner.setAttribute('role', 'status');
-  spinner.setAttribute('aria-label', 'Loading tree photo');
+  spinner.setAttribute('aria-label', 'Loading plant photo');
   dom.imgContainer.replaceChildren(spinner);
 }
 
@@ -1218,7 +1194,7 @@ function showPhotoUnavailable(message) {
   const skipButton = document.createElement('button');
   skipButton.type = 'button';
   skipButton.className = 'secondary';
-  skipButton.textContent = 'Skip tree';
+  skipButton.textContent = 'Skip annual';
   skipButton.addEventListener('click', startRound);
 
   actions.append(retryButton, skipButton);
@@ -1230,7 +1206,7 @@ function showPhotoUnavailable(message) {
 function loadImage(url) {
   return new Promise((resolve, reject) => {
     const image = new Image();
-    image.alt = 'Tree identification photo';
+    image.alt = 'Annual identification photo';
     image.onload = () => resolve(image);
     image.onerror = () => reject(new Error(`Could not load image: ${url}`));
     image.src = url;
@@ -1270,7 +1246,7 @@ function renderPhoto(image, observation, photo) {
 
   image.alt = isAnswered
     ? `Photo of ${currentSpecies.commonName || currentSpecies.scientificName}`
-    : 'Tree identification photo';
+    : 'Annual identification photo';
 
   dom.imgContainer.replaceChildren(image, caption);
 
@@ -1367,6 +1343,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
   dom.imgContainer = document.getElementById('img-container');
   dom.feedback = document.getElementById('feedback');
+  dom.studyDetails = document.getElementById('study-details');
   dom.nextBtn = document.getElementById('next-btn');
   dom.altPhotoBtn = document.getElementById('alt-photo-btn');
   dom.scoreValue = document.getElementById('score-value');

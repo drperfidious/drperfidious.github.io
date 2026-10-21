@@ -1,7 +1,7 @@
 {
-  "name": "Tree ID — Guess the Tree!",
-  "short_name": "Tree ID",
-  "description": "A tree identification study game using live iNaturalist photos.",
+  "name": "Annuals ID — HORT 1230 Quiz 2",
+  "short_name": "Annuals ID",
+  "description": "Study the 15 HORT 1230 Quiz 2 annuals using live iNaturalist photos and course pronunciation cues.",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
