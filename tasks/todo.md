@@ -23,5 +23,7 @@ Known photo scope: Salvia farinacea photos do not verify Victoria Blue; cultivat
 ## Publication
 
 - [x] Confirm GitHub Pages publishes the repository root from main and synchronize remote state.
-- [ ] Commit and push the annuals update to main.
-- [ ] Verify the GitHub Pages deployment and live annuals page.
+- [x] Commit and push the annuals update to main.
+- [x] Verify the GitHub Pages deployment and live annuals page.
+
+Published application commit: 6e3f213. GitHub Pages run 39687532801 succeeded. Public index and manifest returned HTTP 200 and matched the local files exactly. The public page loaded an annual photo and enabled Check answer in the browser at https://drperfidious.github.io/.
